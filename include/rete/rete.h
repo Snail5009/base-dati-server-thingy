@@ -6,6 +6,8 @@
 #define INDIRIZZO_IPV4(x3, x2, x1, x0) \
     htobe32(((x3) << 24) | ((x2) << 16) | ((x1) << 8) | (x0))
 
+#define INDIRIZZO_LOCALHOST INDIRIZZO_IPV4(127,0,0,1)
+
 #define PORT_TCP(x) htobe16(x)
 
 int crea_socket(void);
@@ -15,6 +17,6 @@ void epoll_nuovo_desc(int edesc, int desc, int eventi);
 void epoll_elimina_desc(int edesc, int desc); // anche chiude il desc
 int server_accetti_cliente(int server);
 void server_accetti_cliente_e_configura(int epoll, int server, int mostra_log);
-void server_recv(int cliente, char *buffer, int lunghezza_buffer);
+int server_recv(int cliente, uint8_t *buffer, int lunghezza_buffer);
 
 #endif

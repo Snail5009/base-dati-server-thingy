@@ -7,8 +7,10 @@
 #include <endian.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <rete/rete.h>
+#include "clienti.h"
 
 #define NUM_MASS_DI_EVENTI (10)
 
@@ -22,7 +24,10 @@ int main(void)
     struct sockaddr_in indirizzo_cliente;
     struct epoll_event ev, eventi[NUM_MASS_DI_EVENTI];
     socklen_t indirizzo_cliente_len;
-    uint8_t buffer_dati[512];
+
+    Richiesta richiesta;
+
+    richiesta.buffer = NULL;
 
 
     descrittore_epoll = epoll_create1(0);
@@ -68,23 +73,9 @@ int main(void)
             }
             else
             {
-                if (!(eventi_bitfield & EPOLLRDHUP))
+                if (eventi_bitfield & EPOLLIN)
                 {
-                    server_recv(fd, buffer_dati, 512);
-                    
-                    // questo sarà la lunghezza SOLTATO se il buffer per questo
-                    // cliente è vuoto. Questo è importante se ci sono più scritture
-                    // che fanno un messaggio solo, o se il messaggio contiene più di 511
-                    // byte.
-                    // QUESTA E' UNA COSA CHE VOGLIO RIMEDIARE PIU' O MENO SUBITO
-                    uint32_t lunghezza = be32toh(*(uint32_t *)&buffer_dati[0]);
-                    printf("%d\n", lunghezza);
-                    for (int j = 4; j < lunghezza + 8 && j < 511; j++)
-                    {
-                        printf("%d: %x\n", j, buffer_dati[j]);
-                        // QUI dobbiamo salvare i dati in un buffer per poi eseguire
-                        // la richiesta dopo aver ricevuto tutto.
-                    }
+                    printf("EPOLLIN\n");
                 }
 
                 if (eventi_bitfield & EPOLLRDHUP)

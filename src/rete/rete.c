@@ -14,7 +14,7 @@
 
 
 /* UTILITÀ CHE NON VANNO LINKATI O INCLUSI */
-void _nonbloccare(int socket)
+static void _nonbloccare(int socket)
 {
     if (fcntl(socket, F_SETFL, fcntl(socket, F_GETFL, 0) | O_NONBLOCK) < 0)
     {
@@ -106,7 +106,7 @@ int server_accetti_cliente(int server)
     cliente = accept(
         server,
         (struct sockaddr *)&indirizzo,
-        &lung_indirizzo
+        (socklen_t *)&lung_indirizzo
     );
     if (cliente < 0)
     {
@@ -130,15 +130,16 @@ void server_accetti_cliente_e_configura(int epoll, int server, int mostra_log)
     }
 }
 
-void server_recv(int cliente, char *buffer, int lunghezza_buffer)
+int server_recv(int cliente, uint8_t *buffer, int lunghezza)
 {
     int lunghezza_reale;
     
-    lunghezza_reale = read(cliente, buffer, lunghezza_buffer - 1);
+    lunghezza_reale = read(cliente, buffer, lunghezza);
     if (lunghezza_reale < 0)
     {
         perror("read");
         exit(1);
     }
     buffer[lunghezza_reale] = 0;
+    return lunghezza_reale;
 }
