@@ -2,6 +2,7 @@
 #define _RETE_H
 #include <endian.h>
 #include <stdint.h>
+#include <sys/epoll.h>
 
 #define INDIRIZZO_IPV4(x3, x2, x1, x0) \
     htobe32(((x3) << 24) | ((x2) << 16) | ((x1) << 8) | (x0))
@@ -18,5 +19,8 @@ void epoll_elimina_desc(int edesc, int desc); // anche chiude il desc
 int server_accetti_cliente(int server);
 void server_accetti_cliente_e_configura(int epoll, int server, int mostra_log);
 int server_recv(int cliente, uint8_t *buffer, int lunghezza_buffer);
+void server_ascolta(int server, int nconn);
+int server_epoll_aspetta(int server, struct epoll_event *eventi, int neventi);
+int epoll_crea(void);
 
 #endif

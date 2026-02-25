@@ -143,3 +143,38 @@ int server_recv(int cliente, uint8_t *buffer, int lunghezza)
     buffer[lunghezza_reale] = 0;
     return lunghezza_reale;
 }
+
+void server_ascolta(int server, int nconn)
+{
+    if (listen(server, 10) < 0)
+    {
+        perror("listen");
+        exit(1);
+    }
+}
+
+int server_epoll_aspetta(int server, struct epoll_event *eventi, int neventi)
+{
+    int ndesc;
+    ndesc = epoll_wait(server, eventi, neventi, -1);
+    if (ndesc < 0)
+    {
+        perror("epoll_wait");
+        exit(1);
+    }
+    return ndesc;
+}
+
+int epoll_crea(void)
+{
+    int epoll;
+
+    epoll = epoll_create1(0);
+    if (epoll < 0)
+    {
+        perror("epoll_create1");
+        exit(1);
+    }
+
+    return epoll;
+}

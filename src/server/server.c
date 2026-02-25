@@ -10,85 +10,66 @@
 #include <assert.h>
 
 #include <rete/rete.h>
-#include "clienti.h"
 
-#define NUM_MASS_DI_EVENTI (10)
+#define NUM_DI_EVENTI (10)
+
+typedef struct
+{
+    int desc;
+    int epoll;
+
+    struct epoll_event eventi[NUM_DI_EVENTI];
+} Server;
+
+static void _server_elabora_notifica(Server *s, int fd, uint32_t eventi)
+{
+    if (eventi & EPOLLIN)
+    {
+        read(s->desc, );
+    }
+
+    if (eventi & EPOLLRDHUP)
+    {
+        printf("cliente disconnesso (%d)\n", s.eventi[i].data.fd);
+        epoll_elimina_desc(s.epoll, s.eventi[i].data.fd);
+    }
+}
 
 int main(void)
 {
-    int descrittore_server, descrittore_cliente, descrittore_epoll;
-    int fd; //tmp
-    int lunghezza;
-    int eventi_bitfield;
-    int ndescrittori, i;
-    struct sockaddr_in indirizzo_cliente;
-    struct epoll_event ev, eventi[NUM_MASS_DI_EVENTI];
-    socklen_t indirizzo_cliente_len;
+    int ndesc, i;
+    struct epoll_event ev;
+    Server s;
 
-    Richiesta richiesta;
-
-    richiesta.buffer = NULL;
-
-
-    descrittore_epoll = epoll_create1(0);
-    if (descrittore_epoll < 0)
-    {
-        perror("epoll_create1");
-        exit(1);
-    }
-
-    descrittore_server = crea_socket();
-    assegna_indirizzo_a_server(descrittore_server,
+    s.epoll = epoll_crea();
+    
+    s.desc = crea_socket();
+    assegna_indirizzo_a_server(s.desc,
         INDIRIZZO_IPV4(127, 0, 0, 1),
         PORT_TCP(12345)
     );
 
-    if (listen(descrittore_server, 10) < 0)
-    {
-        perror("listen");
-        exit(1);
-    }
-    
-    epoll_nuovo_desc(descrittore_epoll, descrittore_server, EPOLLIN);
+    server_ascolta(s.desc, 10);
+    epoll_nuovo_desc(s.epoll, s.desc, EPOLLIN);
 
     int finito = 0;
     while (!finito)
     {
-        ndescrittori = epoll_wait(descrittore_epoll, eventi, NUM_MASS_DI_EVENTI, -1);
-        if (ndescrittori < 0)
+        ndesc = server_epoll_aspetta(s.desc, s.eventi, NUM_DI_EVENTI);
+        for (i = 0; i < ndesc; i++)
         {
-            perror("epoll_wait");
-            exit(1);
-        }
-
-
-        for (i = 0; i < ndescrittori; i++)
-        {
-            fd = eventi[i].data.fd;
-            eventi_bitfield = eventi[i].events;
-
-            if (fd == descrittore_server)
+            if (s.eventi[i].data.fd == s.desc)
             {
-                server_accetti_cliente_e_configura(descrittore_epoll, descrittore_server, 1);
+                server_accetti_cliente_e_configura(s.epoll, s.desc, 1);
             }
             else
             {
-                if (eventi_bitfield & EPOLLIN)
-                {
-                    printf("EPOLLIN\n");
-                }
-
-                if (eventi_bitfield & EPOLLRDHUP)
-                {
-                    printf("cliente disconnesso (%d)\n", fd);
-                    epoll_elimina_desc(descrittore_epoll, fd);
-                }
+                _server_elabora_notifica()
             }
         }
     }
     
-    close(descrittore_server);
-    close(descrittore_epoll);
-
+    close(s.desc);
+    close(s.epoll);
     return 0;
 }
