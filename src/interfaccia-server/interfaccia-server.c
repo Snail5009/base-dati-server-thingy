@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <rete/rete.h>
+
 #define NUM_MASS_DI_EVENTI (10)
 
 void setnonblocking(int socket)
@@ -32,8 +34,8 @@ int main(void)
     char buffer_dati[512];
 
     indirizzo_server.sin_family = AF_INET;
-    indirizzo_server.sin_port = htobe16(12345);
-    indirizzo_server.sin_addr.s_addr = htobe32((127 << 24) | 1);
+    indirizzo_server.sin_port = PORT_TCP(12345);
+    indirizzo_server.sin_addr.s_addr = INDIRIZZO_IPV4(127, 0, 0, 1);
 
 
     descrittore_epoll = epoll_create1(0);
