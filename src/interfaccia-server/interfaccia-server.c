@@ -68,7 +68,7 @@ int main(void)
             }
             else
             {
-                if (!(eventi_bitfield & EPOLLHUP))
+                if (!(eventi_bitfield & EPOLLRDHUP))
                 {
                     server_recv(fd, buffer_dati, 512);
                     
