@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <rete/rete.h>
+#include <rete/protocollo.h>
 
 int main(void)
 {
@@ -16,8 +17,7 @@ int main(void)
         INDIRIZZO_IPV4(127, 0, 0, 1),
         PORT_TCP(12345)
     );
-    send(server, "ciaooo", 5, 0);
+    invia_messaggio(server, 0, PING, NULL);
     close(server);
-
     return 0;
 }

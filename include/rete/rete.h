@@ -10,5 +10,11 @@
 
 int crea_socket(void);
 void connetti_a_server(int desc, uint32_t indirizzo, uint16_t port);
+void assegna_indirizzo_a_server(int desc, uint32_t indirizzo_ipv4, uint16_t port);
+void epoll_nuovo_desc(int edesc, int desc, int eventi);
+void epoll_elimina_desc(int edesc, int desc); // anche chiude il desc
+int server_accetti_cliente(int server);
+void server_accetti_cliente_e_configura(int epoll, int server, int mostra_log);
+void server_recv(int cliente, char *buffer, int lunghezza_buffer);
 
 #endif

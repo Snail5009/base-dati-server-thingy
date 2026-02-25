@@ -12,10 +12,23 @@
 #include <unistd.h>
 #include <errno.h>
 
+
+/* UTILITÀ CHE NON VANNO LINKATI O INCLUSI */
+void _nonbloccare(int socket)
+{
+    if (fcntl(socket, F_SETFL, fcntl(socket, F_GETFL, 0) | O_NONBLOCK) < 0)
+    {
+        perror("fcntl");
+        exit(1);
+    }
+}
+
+
+
 int crea_socket(void)
 {
     int desc;
-    
+
     desc = socket(AF_INET, SOCK_STREAM, 0);
     if (desc < 0)
     {
@@ -45,4 +58,87 @@ void connetti_a_server(int desc, uint32_t indirizzo_ipv4, uint16_t port)
         close(desc);
         exit(1);
     }
+}
+
+void assegna_indirizzo_a_server(int desc, uint32_t indirizzo_ipv4, uint16_t port)
+{
+    struct sockaddr_in indirizzo;
+    int risultato;
+
+    indirizzo.sin_family = AF_INET;
+    indirizzo.sin_port = port;
+    indirizzo.sin_addr.s_addr = indirizzo_ipv4;
+
+    risultato = bind(desc,
+        (const struct sockaddr *)&indirizzo,
+        (socklen_t)sizeof indirizzo
+    );
+
+    if (risultato < 0)
+    {
+        perror("connect");
+        close(desc);
+        exit(1);
+    }
+}
+
+void epoll_nuovo_desc(int edesc, int desc, int eventi)
+{
+    struct epoll_event ev;
+
+    ev.events = eventi;
+    ev.data.fd = desc;
+    epoll_ctl(edesc, EPOLL_CTL_ADD, desc, &ev);
+}
+
+void epoll_elimina_desc(int edesc, int desc)
+{
+    epoll_ctl(edesc, EPOLL_CTL_DEL, desc, NULL);
+    close(desc);
+}
+
+int server_accetti_cliente(int server)
+{
+    int cliente;
+    struct sockaddr_in indirizzo;
+    int lung_indirizzo = sizeof indirizzo;
+
+    cliente = accept(
+        server,
+        (struct sockaddr *)&indirizzo,
+        &lung_indirizzo
+    );
+    if (cliente < 0)
+    {
+        perror("accept");
+        exit(1);
+    }
+    _nonbloccare(cliente);
+
+    return cliente;
+}
+
+
+void server_accetti_cliente_e_configura(int epoll, int server, int mostra_log)
+{
+    int cliente;
+    cliente = server_accetti_cliente(server);
+    epoll_nuovo_desc(epoll, cliente, EPOLLIN | EPOLLRDHUP);
+    if (mostra_log)
+    {
+        fprintf(stderr, "cliente connesso (%d)\n", cliente);
+    }
+}
+
+void server_recv(int cliente, char *buffer, int lunghezza_buffer)
+{
+    int lunghezza_reale;
+    
+    lunghezza_reale = read(cliente, buffer, lunghezza_buffer - 1);
+    if (lunghezza_reale < 0)
+    {
+        perror("read");
+        exit(1);
+    }
+    buffer[lunghezza_reale] = 0;
 }
