@@ -22,7 +22,7 @@ struct HMQ
 static void _hmq_ridimensiona(HMQ *hm, uint64_t capacita_prec)
 {
     int i;
-    uint64_t nuovi_indice;
+    uint64_t nuovo_indice;
     HMQ_Entry *dati_nuovi;
     dati_nuovi = malloc(hm->capacita * sizeof *dati_nuovi);
     if (!dati_nuovi)
@@ -53,7 +53,7 @@ static void _hmq_controlla_dimensioni(HMQ *hm)
     int capacita_prec;
     if (hm->nvoci >= hm->capacita / 2)
     {
-        capacita_prec = hm->capacita
+        capacita_prec = hm->capacita;
         hm->capacita *= 2;
         _hmq_ridimensiona(hm, capacita_prec);
     }
@@ -66,7 +66,7 @@ HMQ *hmq_nuova(uint64_t capacita_iniziale)
     hm = malloc(sizeof *hm);
     hm->nvoci = 0;
     hm->capacita = capacita_iniziale;
-    hm->dati = malloc(hm->capacita * sizeof *hm->dati);
+    hm->dati = calloc(hm->capacita, sizeof *hm->dati);
     if (!hm->dati)
     {
         fprintf(stderr, "error di allocazione\n");
@@ -84,9 +84,25 @@ void hmq_chiudi(HMQ *hm)
 
 void hmq_inserisci(HMQ *hm, uint32_t chiave, uint64_t dati)
 {
-    HMQ_Entry *voce = &hm->dati[chiave % hm->capacita];
+    int indice;
+    HMQ_Entry *voce;
+    
+    indice = chiave % hm->capacita;
+    voce = &hm->dati[indice];
+
+    hm->nvoci++;
+    _hmq_controlla_dimensioni(hm);
+    
+    while (voce->esiste)
+    {
+        indice++;
+        indice %= hm->capacita;
+        voce = &hm->dati[indice];
+    }
+    
     voce->esiste = 1;
-    voce->
+    voce->valore = dati;
+    voce->chiave = chiave;
 }
 void hmq_rimuovi(HMQ *hm, uint64_t chiave)
 {
@@ -94,5 +110,18 @@ void hmq_rimuovi(HMQ *hm, uint64_t chiave)
 }
 uint64_t hmq_estrai_valore(HMQ *hm, uint64_t chiave)
 {
+    int indice;
+    HMQ_Entry *voce;
+    
+    indice = chiave % hm->capacita;
+    voce = &hm->dati[indice];
 
+    while (voce->esiste && voce->chiave != chiave)
+    {
+        indice++;
+        indice %= hm->capacita;
+        voce = &hm->dati[indice];
+    }
+
+    return voce->valore;
 }

@@ -79,6 +79,8 @@ int main(void)
     assert(hmq_estrai_valore(hm, 1234) == -1);
     hmq_chiudi(hm);
 
+    return 0;
+
     s.epoll = epoll_crea();
     
     s.desc = crea_socket();
