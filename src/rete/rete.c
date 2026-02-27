@@ -153,10 +153,10 @@ void server_ascolta(int server, int nconn)
     }
 }
 
-int server_epoll_aspetta(int server, struct epoll_event *eventi, int neventi)
+int server_epoll_aspetta(int epoll, struct epoll_event *eventi, int neventi)
 {
     int ndesc;
-    ndesc = epoll_wait(server, eventi, neventi, -1);
+    ndesc = epoll_wait(epoll, eventi, neventi, -1);
     if (ndesc < 0)
     {
         perror("epoll_wait");

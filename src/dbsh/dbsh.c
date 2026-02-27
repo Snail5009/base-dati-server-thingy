@@ -7,13 +7,21 @@
 
 #include <cliente/cliente.h>
 
+void messaggio(Cliente *cliente)
+{
+    int lunghezza_messaggio = htobe32(4);
+    cliente_invia(cliente, (const uint8_t *)&lunghezza_messaggio, 4);
+    sleep(1);
+    cliente_invia(cliente, "ciao", 4);
+}
+
 int main(void)
 {
-    int pass;
     Cliente *cliente;
     cliente = cliente_connetti(INDIRIZZO_LOCALHOST, PORT_TCP(12345));
-    pass = cliente_chiedi_prop_bool(cliente, PROP_SERVER_BOOL_PASSWORD_RICHIESTA);
-    printf("%s\n", pass ? "password richiesta" : "password non richiesta");
+    
+    messaggio(cliente);
+    
     cliente_chiudi(cliente);
     return 0;
 }

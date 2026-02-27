@@ -22,6 +22,11 @@ void cliente_chiudi(Cliente *cliente)
     close(cliente->desc);
 }
 
+int cliente_invia(Cliente *cliente, const uint8_t *messaggio, uint32_t len)
+{
+    write(cliente->desc, messaggio, len);
+}
+
 int cliente_chiedi_prop_bool(Cliente *cliente, PropServerBool proprieta)
 {
     int32_t proprieta_be = htobe32(proprieta);
