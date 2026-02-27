@@ -25,13 +25,13 @@ static void _server_elabora_notifica(Server *s, int fd, uint32_t eventi)
 {
     if (eventi & EPOLLIN)
     {
-        read(s->desc, );
+        read(s->desc, j);
     }
 
     if (eventi & EPOLLRDHUP)
     {
-        printf("cliente disconnesso (%d)\n", s.eventi[i].data.fd);
-        epoll_elimina_desc(s.epoll, s.eventi[i].data.fd);
+        printf("cliente disconnesso (%d)\n", s->eventi[i].data.fd);
+        epoll_elimina_desc(s->epoll, s->eventi[i].data.fd);
     }
 }
 
