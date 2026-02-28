@@ -71,16 +71,6 @@ int main(void)
     struct epoll_event ev;
     Server s;
 
-    HMQ *hm;
-    hm = hmq_nuova(8);
-    hmq_inserisci(hm, 1234, 1289347);
-    assert(hmq_estrai_valore(hm, 1234) == 1289347);
-    hmq_rimuovi(hm, 1234);
-    assert(hmq_estrai_valore(hm, 1234) == -1);
-    hmq_chiudi(hm);
-
-    return 0;
-
     s.epoll = epoll_crea();
     
     s.desc = crea_socket();

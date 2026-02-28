@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 typedef struct HMQ_Entry HMQ_Entry;
 
@@ -24,7 +25,7 @@ static void _hmq_ridimensiona(HMQ *hm, uint64_t capacita_prec)
     int i;
     uint64_t nuovo_indice;
     HMQ_Entry *dati_nuovi;
-    dati_nuovi = malloc(hm->capacita * sizeof *dati_nuovi);
+    dati_nuovi = calloc(hm->capacita, sizeof *dati_nuovi);
     if (!dati_nuovi)
     {
         fprintf(stderr, "error di allocazione\n");
@@ -36,11 +37,11 @@ static void _hmq_ridimensiona(HMQ *hm, uint64_t capacita_prec)
         nuovo_indice = hm->dati[i].chiave % hm->capacita;
         if (hm->dati[i].esiste)
         {
+            while (dati_nuovi[nuovo_indice].esiste)
+            {
+                nuovo_indice++;
+            }
             dati_nuovi[nuovo_indice] = hm->dati[i];
-        }
-        else
-        {
-            dati_nuovi[nuovo_indice].esiste = 0;
         }
     }
 
@@ -87,11 +88,19 @@ void hmq_inserisci(HMQ *hm, uint32_t chiave, uint64_t dati)
     int indice;
     HMQ_Entry *voce;
     
-    indice = chiave % hm->capacita;
-    voce = &hm->dati[indice];
+    if (hmq_estrai_valore(hm, chiave) != -1)
+    {
+        fprintf(stderr, "chiave %d esiste già\n", chiave);
+        exit(1);
+    }
 
     hm->nvoci++;
     _hmq_controlla_dimensioni(hm);
+
+    indice = chiave % hm->capacita;
+    voce = &hm->dati[indice];
+    
+    
     
     while (voce->esiste)
     {
@@ -104,15 +113,33 @@ void hmq_inserisci(HMQ *hm, uint32_t chiave, uint64_t dati)
     voce->valore = dati;
     voce->chiave = chiave;
 }
-void hmq_rimuovi(HMQ *hm, uint64_t chiave)
-{
 
+int hmq_rimuovi(HMQ *hm, uint64_t chiave)
+{
+    int indice, indice_prec;
+    HMQ_Entry *voce;
+    
+    indice = chiave % hm->capacita;
+    voce = &hm->dati[indice];
+
+    while (voce->esiste && voce->chiave != chiave)
+    {
+        indice_prec = indice;
+        indice++;
+        indice %= hm->capacita;
+        voce = &hm->dati[indice];
+        memcpy(&hm->dati[indice_prec], voce, sizeof(*voce));
+    }
+
+    voce->esiste = 0;
+
+    return 0;
 }
 uint64_t hmq_estrai_valore(HMQ *hm, uint64_t chiave)
 {
     int indice;
     HMQ_Entry *voce;
-    
+
     indice = chiave % hm->capacita;
     voce = &hm->dati[indice];
 
@@ -122,6 +149,8 @@ uint64_t hmq_estrai_valore(HMQ *hm, uint64_t chiave)
         indice %= hm->capacita;
         voce = &hm->dati[indice];
     }
+
+    if (voce->chiave != chiave || voce->esiste == 0) return -1;
 
     return voce->valore;
 }
